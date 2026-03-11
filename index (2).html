@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VegaHaus CRM</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --terra:#C4633A;--terra-d:#A84E2A;--terra-l:#E8845C;--terra-xl:#F5DDD0;
+  --cream:#F5F0E8;--tan:#EDE8DD;--dark:#1C1C1A;--mid:#8B6F5E;
+  --green:#3D7A52;--green-l:#EEF5F1;--amber:#B07020;--amber-l:#FDF6E8;
+  --blue:#2660A4;--blue-l:#EBF2FB;
+}
+body{font-family:Poppins,sans-serif;background:var(--cream);color:var(--dark);display:flex;height:100vh;overflow:hidden}
+.sidebar{width:230px;background:var(--dark);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.brand{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.07)}
+.brand-mark{width:34px;height:34px;background:var(--terra);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:#fff;margin-bottom:8px}
+.brand-name{font-size:11px;font-weight:700;color:#fff;letter-spacing:.06em}
+.brand-sub{font-size:9px;color:rgba(255,255,255,.3);letter-spacing:.08em;margin-top:1px}
+.nav{padding:14px 10px;flex:1}
+.nl{font-size:9px;font-weight:700;letter-spacing:.14em;color:rgba(255,255,255,.25);padding:0 8px;margin:14px 0 5px}
+.ni{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;color:rgba(255,255,255,.5);font-size:11.5px;font-weight:500;transition:all .15s;margin-bottom:2px}
+.ni:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.8)}
+.ni.active{background:var(--terra);color:#fff}
+.ni .icon{font-size:13px;width:16px;text-align:center}
+.badge{margin-left:auto;background:rgba(255,255,255,.12);color:rgba(255,255,255,.6);font-size:9px;font-weight:700;padding:2px 6px;border-radius:20px}
+.ni.active .badge{background:rgba(255,255,255,.25);color:#fff}
+.monday{margin:10px;padding:11px;background:rgba(196,99,58,.15);border-radius:8px;border:1px solid rgba(196,99,58,.3)}
+.monday .ml{font-size:9px;font-weight:700;color:var(--terra-l);letter-spacing:.1em;margin-bottom:3px}
+.monday .mt{font-size:10px;color:rgba(255,255,255,.45);line-height:1.5}
+.main{flex:1;overflow-y:auto}
+.view{display:none;padding:26px 30px}
+.view.active{display:block}
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px}
+.page-head h1{font-size:19px;font-weight:700}
+.page-head p{font-size:11.5px;color:var(--mid);margin-top:3px}
+.btn-primary{display:flex;align-items:center;gap:6px;padding:9px 16px;background:var(--terra);border:none;border-radius:8px;font-family:Poppins,sans-serif;font-size:11.5px;font-weight:700;color:#fff;cursor:pointer;white-space:nowrap;transition:background .15s}
+.btn-primary:hover{background:var(--terra-d)}
+.btn-row{display:flex;gap:8px}
+.btn-outline{padding:9px 14px;background:#fff;border:1.5px solid var(--terra);border-radius:8px;font-family:Poppins,sans-serif;font-size:11px;font-weight:700;color:var(--terra);cursor:pointer;transition:all .15s}
+.btn-outline:hover{background:var(--terra);color:#fff}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+.kpi{background:#fff;border-radius:12px;padding:16px 18px;border-left:4px solid var(--terra);box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.kpi-num{font-size:30px;font-weight:700;color:var(--terra);line-height:1}
+.kpi-label{font-size:10.5px;color:var(--mid);font-weight:500;margin-top:3px}
+.kpi-sub{font-size:9.5px;color:rgba(139,111,94,.6);margin-top:2px}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card{background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.card-title{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--mid);margin-bottom:12px;text-transform:uppercase}
+.funnel-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.funnel-lbl{font-size:10.5px;font-weight:600;width:88px}
+.funnel-wrap{flex:1;background:var(--tan);border-radius:4px;height:20px;overflow:hidden}
+.funnel-bar{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:8px;font-size:9.5px;font-weight:700;color:#fff;transition:width .5s}
+.funnel-ct{font-size:10.5px;font-weight:700;color:var(--mid);width:20px;text-align:right}
+.act-item{display:flex;gap:9px;padding:7px 0;border-bottom:1px solid var(--tan)}
+.act-item:last-child{border-bottom:none}
+.act-dot{width:7px;height:7px;border-radius:50%;background:var(--terra);margin-top:4px;flex-shrink:0}
+.act-text{font-size:11px;line-height:1.5}
+.act-time{font-size:10px;color:rgba(139,111,94,.6);margin-top:1px}
+.check-item{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--tan);cursor:pointer}
+.check-item:last-child{border-bottom:none}
+.check-box{width:17px;height:17px;border-radius:4px;border:2px solid var(--tan);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:9px;transition:all .15s}
+.check-item.done .check-box{background:var(--green);border-color:var(--green);color:#fff}
+.check-text{font-size:11px}
+.check-item.done .check-text{text-decoration:line-through;color:var(--mid)}
+.pipeline-controls{display:flex;gap:8px;margin-bottom:18px}
+.search-box{flex:1;padding:8px 13px;border:1.5px solid var(--tan);border-radius:8px;font-family:Poppins,sans-serif;font-size:11.5px;outline:none;transition:border-color .15s}
+.search-box:focus{border-color:var(--terra)}
+.sf{padding:8px 13px;border:1.5px solid var(--tan);border-radius:8px;font-family:Poppins,sans-serif;font-size:11.5px;outline:none;background:#fff;cursor:pointer}
+.crm-table{background:#fff;border-radius:12px;overflow:hidden;border:1px solid rgba(0,0,0,.06)}
+.tbl-head{display:grid;grid-template-columns:2.2fr 1.2fr 1fr 1fr 1.1fr 1.4fr 32px;padding:10px 18px;background:var(--dark);gap:8px}
+.th{font-size:9px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.4)}
+.tbl-row{display:grid;grid-template-columns:2.2fr 1.2fr 1fr 1fr 1.1fr 1.4fr 32px;padding:12px 18px;gap:8px;border-bottom:1px solid var(--tan);align-items:center;cursor:pointer;transition:background .12s}
+.tbl-row:last-child{border-bottom:none}
+.tbl-row:hover{background:var(--cream)}
+.td{font-size:11px;color:var(--dark)}
+.td-name{font-weight:600;font-size:11.5px}
+.td-sub{font-size:9.5px;color:var(--mid);margin-top:1px}
+.score-bar-wrap{background:var(--tan);border-radius:3px;height:5px;margin-top:3px}
+.score-bar{height:100%;border-radius:3px;background:var(--terra)}
+.sbadge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:.04em}
+.sb-new{background:var(--blue-l);color:var(--blue)}
+.sb-ig{background:#FCF0FA;color:#C13584}
+.sb-em{background:var(--amber-l);color:var(--amber)}
+.sb-rep{background:var(--green-l);color:var(--green)}
+.sb-call{background:var(--green-l);color:var(--green)}
+.sb-warm{background:var(--terra-xl);color:var(--terra)}
+.sb-funded{background:var(--dark);color:#fff}
+.del-btn{background:none;border:none;color:var(--tan);cursor:pointer;font-size:13px;padding:3px;border-radius:4px;transition:all .15s}
+.del-btn:hover{background:#FEF0EB;color:var(--terra)}
+.empty{text-align:center;padding:44px 20px;color:var(--mid)}
+.empty-icon{font-size:32px;margin-bottom:10px}
+.empty-title{font-size:14px;font-weight:700;color:var(--dark);margin-bottom:5px}
+.filter-bar{display:flex;gap:7px;margin-bottom:18px;flex-wrap:wrap}
+.chip{padding:5px 13px;border-radius:20px;background:#fff;border:1.5px solid var(--tan);font-size:11px;font-weight:600;color:var(--mid);cursor:pointer;transition:all .15s}
+.chip.active{background:var(--terra);border-color:var(--terra);color:#fff}
+.chip:hover:not(.active){border-color:var(--terra);color:var(--terra)}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+.pcard{background:#fff;border-radius:12px;overflow:hidden;border:1.5px solid var(--tan);transition:transform .18s,box-shadow .18s,border-color .18s}
+.pcard:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(196,99,58,.12);border-color:var(--terra-l)}
+.pc-top{padding:14px;display:flex;gap:11px;align-items:flex-start}
+.pc-emoji{font-size:24px;width:42px;height:42px;background:var(--cream);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pc-name{font-size:12.5px;font-weight:700;line-height:1.3}
+.pc-role{font-size:9.5px;color:var(--mid);margin-top:2px}
+.sp-hot{padding:3px 9px;border-radius:20px;font-size:9px;font-weight:700;background:#FEF0EB;color:var(--terra)}
+.sp-warm{padding:3px 9px;border-radius:20px;font-size:9px;font-weight:700;background:var(--amber-l);color:var(--amber)}
+.pc-sigs{padding:0 14px 10px;display:flex;flex-direction:column;gap:4px}
+.sig{font-size:10px;display:flex;gap:6px;align-items:flex-start;line-height:1.4}
+.sig-dot{width:5px;height:5px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.pc-body{padding:10px 14px;border-top:1px solid var(--tan)}
+.pc-lbl{font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--mid);margin-bottom:5px;margin-top:8px}
+.pc-lbl:first-child{margin-top:0}
+.pc-txt{font-size:10.5px;line-height:1.6;color:var(--dark)}
+.pc-script{padding:9px 11px;background:var(--cream);border-radius:7px;border-left:3px solid var(--terra);font-size:10.5px;font-style:italic;line-height:1.6;margin-top:6px}
+.pc-actions{padding:10px 14px;background:var(--cream);display:flex;gap:7px}
+.btn-sm{flex:1;padding:7px;border-radius:7px;font-family:Poppins,sans-serif;font-size:10px;font-weight:700;cursor:pointer;transition:all .15s}
+.btn-sm-o{border:1.5px solid var(--terra);background:transparent;color:var(--terra)}
+.btn-sm-o:hover{background:var(--terra);color:#fff}
+.btn-sm-s{border:none;background:var(--terra);color:#fff}
+.btn-sm-s:hover{background:var(--terra-d)}
+.btn-sm-b{border:none;background:var(--blue);color:#fff}
+.btn-sm-b:hover{background:#1e4f8a}
+.msg-layout{max-width:800px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:16px}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg.full{grid-column:1/-1}
+.flabel{font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--mid)}
+.finput,.fselect,.ftextarea{padding:9px 12px;border:1.5px solid var(--tan);border-radius:8px;font-family:Poppins,sans-serif;font-size:11.5px;color:var(--dark);background:#fff;outline:none;transition:border-color .15s}
+.finput:focus,.fselect:focus,.ftextarea:focus{border-color:var(--terra)}
+.ftextarea{resize:vertical;min-height:60px}
+.ch-toggle{display:flex;gap:7px}
+.ch-btn{flex:1;padding:9px;border-radius:8px;border:2px solid var(--tan);background:#fff;font-family:Poppins,sans-serif;font-size:11px;font-weight:600;color:var(--mid);cursor:pointer;transition:all .15s;text-align:center}
+.ch-btn.sel{border-color:var(--terra);background:var(--terra-xl);color:var(--terra)}
+.gen-btn{width:100%;padding:12px;background:var(--terra);border:none;border-radius:10px;font-family:Poppins,sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;margin:4px 0 20px;transition:background .15s}
+.gen-btn:hover{background:var(--terra-d)}
+.msgs-out{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.msg-card{background:#fff;border-radius:12px;overflow:hidden;border:1.5px solid var(--tan)}
+.msg-head{padding:10px 15px;background:var(--dark);display:flex;justify-content:space-between;align-items:center}
+.msg-head-lbl{font-size:10px;font-weight:700;color:#fff;letter-spacing:.06em}
+.msg-body{padding:14px;font-size:11.5px;line-height:1.75;white-space:pre-wrap;min-height:120px}
+.copy-row{padding:9px 14px;background:var(--cream);display:flex;justify-content:flex-end}
+.copy-btn{padding:6px 14px;background:transparent;border:1.5px solid var(--terra);border-radius:6px;font-family:Poppins,sans-serif;font-size:10px;font-weight:700;color:var(--terra);cursor:pointer;transition:all .15s}
+.copy-btn:hover{background:var(--terra);color:#fff}
+.copy-btn.copied{background:var(--green);border-color:var(--green);color:#fff}
+.overlay{display:none;position:fixed;inset:0;background:rgba(28,28,26,.65);z-index:100;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;width:560px;max-height:88vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.25)}
+.modal-head{padding:16px 20px;background:var(--terra);border-radius:14px 14px 0 0;display:flex;justify-content:space-between;align-items:center}
+.modal-head h3{color:#fff;font-size:14px;font-weight:700}
+.close-btn{background:rgba(255,255,255,.2);border:none;color:#fff;width:26px;height:26px;border-radius:50%;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.modal-body{padding:20px}
+.mform{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mform .full{grid-column:1/-1}
+.save-btn{width:100%;margin-top:13px;padding:11px;background:var(--terra);border:none;border-radius:8px;font-family:Poppins,sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer}
+.save-btn:hover{background:var(--terra-d)}
+.score-preview{padding:13px;background:var(--cream);border-radius:8px;border-left:4px solid var(--terra);margin-top:13px}
+.sp-num{font-size:26px;font-weight:700;color:var(--terra);line-height:1}
+.sp-label{font-size:11px;color:var(--mid);margin-top:2px}
+.sp-factors{margin-top:8px;display:flex;flex-direction:column;gap:5px}
+.sf-row{display:flex;justify-content:space-between;font-size:10px}
+.sf-key{color:var(--mid)}
+.sf-val{font-weight:700}
+.doverlay{display:none;position:fixed;inset:0;background:rgba(28,28,26,.5);z-index:90}
+.doverlay.open{display:block}
+.drawer{position:fixed;right:-410px;top:0;bottom:0;width:410px;background:#fff;z-index:91;overflow-y:auto;box-shadow:-8px 0 32px rgba(0,0,0,.15);transition:right .28s cubic-bezier(.4,0,.2,1)}
+.drawer.open{right:0}
+.drawer-head{padding:18px;background:var(--dark);position:sticky;top:0;display:flex;justify-content:space-between;align-items:flex-start}
+.d-name{font-size:16px;font-weight:700;color:#fff}
+.d-role{font-size:10px;color:rgba(255,255,255,.4);margin-top:3px}
+.drawer-body{padding:18px}
+.dsec{margin-bottom:18px}
+.dslbl{font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--mid);margin-bottom:8px;text-transform:uppercase}
+.irow{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--tan);font-size:11.5px}
+.irow:last-child{border-bottom:none}
+.ik{color:var(--mid)}
+.iv{font-weight:600}
+.score-big{text-align:center;padding:14px;background:var(--cream);border-radius:10px;margin-bottom:14px}
+.score-circle{width:68px;height:68px;border-radius:50%;border:4px solid var(--terra);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--terra);margin:0 auto 7px}
+.score-tier{font-size:12px;font-weight:700}
+.score-desc{font-size:10px;color:var(--mid);margin-top:2px;line-height:1.5}
+.d-input{width:100%;padding:9px 11px;border:1.5px solid var(--tan);border-radius:8px;font-family:Poppins,sans-serif;font-size:11.5px;outline:none;margin-bottom:0}
+.d-input:focus{border-color:var(--terra)}
+.d-select{width:100%;padding:9px 11px;border:1.5px solid var(--tan);border-radius:8px;font-family:Poppins,sans-serif;font-size:11.5px;outline:none}
+.d-select:focus{border-color:var(--terra)}
+.d-textarea{width:100%;border:1.5px solid var(--tan);border-radius:8px;padding:9px 11px;font-family:Poppins,sans-serif;font-size:11.5px;resize:vertical;min-height:75px;outline:none}
+.d-textarea:focus{border-color:var(--terra)}
+.update-btn{width:100%;padding:10px;background:var(--terra);border:none;border-radius:8px;font-family:Poppins,sans-serif;font-size:12px;font-weight:700;color:#fff;cursor:pointer;margin-top:11px}
+.update-btn:hover{background:var(--terra-d)}
+.msg-btn{width:100%;margin-top:7px;padding:10px;background:none;border:1.5px solid var(--terra);border-radius:8px;font-family:Poppins,sans-serif;font-size:11px;font-weight:700;color:var(--terra);cursor:pointer}
+.dropover{border-color:var(--terra) !important;background:var(--terra-xl) !important}
+.toast{position:fixed;bottom:18px;right:18px;background:var(--dark);color:#fff;padding:11px 16px;border-radius:8px;font-size:12px;border-left:4px solid var(--terra);transform:translateY(60px);opacity:0;transition:all .25s;z-index:999}
+.toast.show{transform:translateY(0);opacity:1}
+</style>
+</head>
+<body>
+<div class="sidebar">
+  <div class="brand">
+    <div class="brand-mark">V</div>
+    <div class="brand-name">VEGAHAUS CRM</div>
+    <div class="brand-sub">INVESTOR RELATIONS · VICTORIA</div>
+  </div>
+  <div class="nav">
+    <div class="nl">OVERVIEW</div>
+    <div class="ni active" onclick="nav('dashboard',this)"><span class="icon">📊</span> Dashboard</div>
+    <div class="nl">💰 INVESTOR RELATIONS</div>
+    <div class="ni" onclick="nav('ir',this)"><span class="icon">👥</span> IR Pipeline <span class="badge" id="nb-ir">0</span></div>
+    <div class="ni" onclick="nav('ir-profiles',this)"><span class="icon">🎯</span> IR Profiles</div>
+    <div class="ni" onclick="nav('messages',this)"><span class="icon">✉️</span> Message Generator</div>
+    <div class="nl">🏢 MDU SALES</div>
+    <div class="ni" onclick="nav('mdu',this)"><span class="icon">🏢</span> MDU Pipeline <span class="badge" id="nb-mdu">0</span></div>
+    <div class="ni" onclick="nav('mdu-profiles',this)"><span class="icon">🗺️</span> MDU Profiles</div>
+    <div class="nl">SETTINGS</div>
+    <div class="ni" onclick="nav('deploy',this)"><span class="icon">🚀</span> Go Live Guide</div>
+    <div class="ni" onclick="confirmReset()" style="color:rgba(255,255,255,.3)"><span class="icon">🗑</span> Reset Data</div>
+  </div>
+  <div class="monday">
+    <div class="ml">MONDAY REMINDER</div>
+    <div class="mt">Update your pipeline before Monday. Billy checks the KPI tracker every week.</div>
+  </div>
+</div>
+<div class="main">
+
+<div id="view-dashboard" class="view active">
+  <div class="page-head">
+    <div><h1>Hi, Victoria! 👋</h1><p>Here's your pipeline across both projects.</p></div>
+    <div class="btn-row">
+      <button class="btn-outline" onclick="exportCSV()">Export CSV</button>
+      <button class="btn-primary" onclick="openAdd('ir')">+ Add Prospect</button>
+    </div>
+  </div>
+  <div class="kpi-row" id="kpi-row"></div>
+  <div class="dash-grid">
+    <div class="card"><div class="card-title">Pipeline Funnels</div><div id="funnel"></div></div>
+    <div class="card"><div class="card-title">Weekly Checklist</div><div id="checklist"></div></div>
+    <div class="card"><div class="card-title">Hot Prospects — Follow Up Now</div><div id="hot-list"></div></div>
+    <div class="card"><div class="card-title">Recent Activity</div><div id="activity"></div></div>
+  </div>
+</div>
+
+<div id="view-ir" class="view">
+  <div class="page-head">
+    <div><h1>💰 Investor Relations Pipeline</h1><p>Private money leads from first touch to funded deal.</p></div>
+    <div class="btn-row">
+      <button class="btn-outline" onclick="exportCSV('ir')">Export CSV</button>
+      <button class="btn-outline" onclick="openImport('ir')">Import CSV</button>
+      <button class="btn-primary" onclick="openAdd('ir')">+ Add IR Prospect</button>
+    </div>
+  </div>
+  <div class="pipeline-controls">
+    <input class="search-box" id="ir-search" placeholder="Search name, industry, source..." oninput="renderPipeline('ir')">
+    <select class="sf" id="ir-sf" onchange="renderPipeline('ir')">
+      <option value="">All Statuses</option>
+      <option value="new">New</option>
+      <option value="ig_followed">IG Engaged</option>
+      <option value="emailed">Emailed / DM</option>
+      <option value="replied">Replied</option>
+      <option value="call">Call Set</option>
+      <option value="warm">Warm</option>
+      <option value="funded">Funded</option>
+    </select>
+  </div>
+  <div class="crm-table">
+    <div class="tbl-head">
+      <div class="th">PROSPECT</div><div class="th">INDUSTRY</div><div class="th">SOURCE</div>
+      <div class="th">SCORE</div><div class="th">STATUS</div><div class="th">NEXT STEP</div><div class="th"></div>
+    </div>
+    <div id="ir-rows"></div>
+  </div>
+</div>
+
+<div id="view-mdu" class="view">
+  <div class="page-head">
+    <div><h1>🏢 MDU Sales Pipeline</h1><p>Property owners and decision makers.</p></div>
+    <div class="btn-row">
+      <button class="btn-outline" onclick="exportCSV('mdu')">Export CSV</button>
+      <button class="btn-outline" onclick="openImport('mdu')" style="border-color:var(--blue);color:var(--blue)">Import CSV</button>
+      <button class="btn-primary" onclick="openAdd('mdu')" style="background:var(--blue)">+ Add MDU Contact</button>
+    </div>
+  </div>
+  <div class="pipeline-controls">
+    <input class="search-box" id="mdu-search" placeholder="Search name, property type, source..." oninput="renderPipeline('mdu')">
+    <select class="sf" id="mdu-sf" onchange="renderPipeline('mdu')">
+      <option value="">All Statuses</option>
+      <option value="new">New</option>
+      <option value="ig_followed">Contacted</option>
+      <option value="emailed">Emailed / DM</option>
+      <option value="replied">Replied</option>
+      <option value="call">Call Set</option>
+      <option value="warm">Warm</option>
+      <option value="funded">Signed</option>
+    </select>
+  </div>
+  <div class="crm-table">
+    <div class="tbl-head">
+      <div class="th">CONTACT</div><div class="th">PROPERTY TYPE</div><div class="th">SOURCE</div>
+      <div class="th">SCORE</div><div class="th">STATUS</div><div class="th">NEXT STEP</div><div class="th"></div>
+    </div>
+    <div id="mdu-rows"></div>
+  </div>
+</div>
+
+<div id="view-ir-profiles" class="view">
+  <div class="page-head"><div><h1>🎯 IR Audience Profiles</h1><p>Who to target and exactly how to reach them.</p></div></div>
+  <div class="filter-bar" id="ir-filters"></div>
+  <div class="pgrid" id="ir-profiles-grid"></div>
+</div>
+
+<div id="view-mdu-profiles" class="view">
+  <div class="page-head"><div><h1>🗺️ MDU Target Profiles</h1><p>Property owners, managers, and decision makers to pursue.</p></div></div>
+  <div class="pgrid" id="mdu-profiles-grid"></div>
+</div>
+
+<div id="view-messages" class="view">
+  <div class="page-head"><div><h1>✉️ Message Generator</h1><p>Ready-to-send Instagram DMs and Email templates.</p></div></div>
+  <div class="msg-layout">
+    <div class="form-grid">
+      <div class="fg"><label class="flabel">THEIR FIRST NAME</label><input class="finput" id="m-name" placeholder="e.g. Priya"></div>
+      <div class="fg"><label class="flabel">INDUSTRY</label>
+        <select class="fselect" id="m-industry">
+          <option value="tech">Tech / Software / Product</option>
+          <option value="nurse">Nurse / Healthcare Worker</option>
+          <option value="doctor">Doctor / Physician</option>
+          <option value="lawyer">Attorney / Lawyer</option>
+          <option value="entrepreneur">Business Owner / Entrepreneur</option>
+          <option value="finance">Finance / Accounting</option>
+          <option value="general">Friend / Family / General</option>
+        </select>
+      </div>
+      <div class="fg"><label class="flabel">HOW YOU KNOW THEM</label>
+        <select class="fselect" id="m-rel">
+          <option value="coworker">Current coworker</option>
+          <option value="former">Former colleague</option>
+          <option value="igfollower">Follows me on Instagram</option>
+          <option value="igstranger">Found them on Instagram</option>
+          <option value="friend">Personal friend</option>
+          <option value="family">Family</option>
+          <option value="stranger">Cold outreach</option>
+        </select>
+      </div>
+      <div class="fg"><label class="flabel">MESSAGE GOAL</label>
+        <select class="fselect" id="m-goal">
+          <option value="seed">Plant the seed — first touch</option>
+          <option value="followup">Follow up — showed interest</option>
+          <option value="bank">Explain the become the bank concept</option>
+          <option value="event">Invite to Zoom / educational session</option>
+          <option value="nurture">Long-term nurture</option>
+        </select>
+      </div>
+      <div class="fg full"><label class="flabel">ONE PERSONAL DETAIL (optional)</label>
+        <input class="finput" id="m-detail" placeholder="e.g. mentioned wanting passive income, just bought a house...">
+      </div>
+      <div class="fg full"><label class="flabel">CHANNEL</label>
+        <div class="ch-toggle">
+          <button class="ch-btn sel" id="ch-ig" onclick="selCh('ig')">Instagram DM</button>
+          <button class="ch-btn" id="ch-em" onclick="selCh('em')">Email</button>
+          <button class="ch-btn" id="ch-both" onclick="selCh('both')">Both</button>
+        </div>
+      </div>
+    </div>
+    <button class="gen-btn" onclick="generateMsgs()">Generate My Messages</button>
+    <div id="msgs-out" class="msgs-out" style="display:none"></div>
+  </div>
+</div>
+
+<div id="view-deploy" class="view">
+  <div class="page-head"><div><h1>🚀 Go Live Guide</h1><p>How to deploy and update your CRM.</p></div></div>
+  <div style="max-width:700px;display:flex;flex-direction:column;gap:16px">
+    <div style="background:var(--green-l);border-left:4px solid var(--green);border-radius:10px;padding:15px 18px">
+      <div style="font-size:10px;font-weight:700;color:var(--green);margin-bottom:4px">SUPABASE CONNECTED — DATA SAVES TO THE CLOUD</div>
+      <div style="font-size:12px;line-height:1.6">Your prospects save directly to Supabase on every add or update. Open on any device and your data will be there.</div>
+    </div>
+    <div style="background:#fff;border-radius:12px;border:1.5px solid var(--tan);padding:18px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:14px">To update your live site at vegahausinvestor-crm.vercel.app:</div>
+      <div style="display:flex;flex-direction:column;gap:11px">
+        <div style="display:flex;gap:12px"><div style="width:20px;height:20px;background:var(--terra-xl);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--terra);flex-shrink:0;margin-top:1px">1</div><div style="font-size:12px;line-height:1.6">Go to your <strong>vegahausinvestor-crm</strong> GitHub repo and click <strong>index.html</strong></div></div>
+        <div style="display:flex;gap:12px"><div style="width:20px;height:20px;background:var(--terra-xl);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--terra);flex-shrink:0;margin-top:1px">2</div><div style="font-size:12px;line-height:1.6">Click the pencil icon to edit, delete all content, paste the new file, and commit</div></div>
+        <div style="display:flex;gap:12px"><div style="width:20px;height:20px;background:var(--terra-xl);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--terra);flex-shrink:0;margin-top:1px">3</div><div style="font-size:12px;line-height:1.6">Vercel auto-redeploys within 60 seconds</div></div>
+      </div>
+    </div>
+    <div style="background:var(--cream);border-radius:10px;padding:15px 18px;display:flex;justify-content:space-between;align-items:center;gap:16px">
+      <div><div style="font-size:12px;font-weight:700">Export your pipeline anytime</div><div style="font-size:11px;color:var(--mid);margin-top:2px">Download a CSV for Excel or Google Sheets.</div></div>
+      <button class="btn-primary" onclick="exportCSV()">Export All CSV</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- end main -->
+
+<div class="overlay" id="add-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modal-title">Add Prospect</h3>
+      <button class="close-btn" onclick="closeAdd()">X</button>
+    </div>
+    <div class="modal-body">
+      <div class="mform">
+        <div class="fg"><label class="flabel">FULL NAME</label><input class="finput" id="a-name" placeholder="Jane Smith"></div>
+        <div class="fg"><label class="flabel" id="a-ind-lbl">INDUSTRY</label>
+          <select class="fselect" id="a-industry" onchange="liveScore()">
+            <option>Tech / Software</option><option>Healthcare / Nursing</option>
+            <option>Legal / Attorney</option><option>Entrepreneur / Business Owner</option>
+            <option>Finance / Accounting</option><option>Trucking / Fleet</option><option>Other</option>
+          </select>
+        </div>
+        <div class="fg"><label class="flabel">SOURCE</label>
+          <select class="fselect" id="a-source" onchange="liveScore()">
+            <option>Instagram</option><option>Email / Cold Outreach</option>
+            <option>Current Coworker</option><option>Former Colleague</option>
+            <option>Personal Network</option><option>Family</option>
+            <option>LinkedIn</option><option>In-Person Event</option><option>Referral</option>
+          </select>
+        </div>
+        <div class="fg" id="wealth-row"><label class="flabel">WEALTH SOURCE</label>
+          <select class="fselect" id="a-wealth" onchange="liveScore()">
+            <option>401K</option><option>HELOC</option><option>Self-Directed IRA</option>
+            <option>Cash Savings</option><option>Whole Life Insurance</option><option>Unknown</option>
+          </select>
+        </div>
+        <div class="fg"><label class="flabel">STATUS</label>
+          <select class="fselect" id="a-status" onchange="liveScore()"></select>
+        </div>
+        <div class="fg"><label class="flabel">EMAIL ADDRESS</label><input class="finput" id="a-email" type="email" placeholder="jane@example.com"></div>
+        <div class="fg"><label class="flabel">JOB TITLE</label><input class="finput" id="a-title" placeholder="e.g. Travel Nurse, Software Engineer"></div>
+        <div class="fg"><label class="flabel">COMPANY / EMPLOYER</label><input class="finput" id="a-company" placeholder="e.g. UCSF, Google, Self-employed"></div>
+        <div class="fg full"><label class="flabel">NEXT STEP</label><input class="finput" id="a-next" placeholder="e.g. Follow up Thursday"></div>
+        <div class="fg full"><label class="flabel">NOTES</label><textarea class="ftextarea" id="a-notes" placeholder="What they said, interest level..."></textarea></div>
+      </div>
+      <div class="score-preview" id="score-preview">
+        <div class="sp-num" id="sp-num">--</div>
+        <div class="sp-label" id="sp-label">Fill in details to calculate score</div>
+        <div class="sp-factors" id="sp-factors"></div>
+      </div>
+      <button class="save-btn" onclick="saveProspect()">Save Prospect</button>
+    </div>
+  </div>
+</div>
+
+<div class="doverlay" id="doverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <div><div class="d-name" id="d-name"></div><div class="d-role" id="d-role"></div></div>
+    <button class="close-btn" onclick="closeDrawer()">X</button>
+  </div>
+  <div class="drawer-body">
+    <div class="score-big" id="d-score"></div>
+    <div class="dsec"><div class="dslbl">Details</div><div id="d-info"></div></div>
+    <div class="dsec"><div class="dslbl">Email</div><input class="d-input" id="d-email" type="email" placeholder="jane@example.com"></div>
+    <div class="dsec"><div class="dslbl">Job Title</div><input class="d-input" id="d-title" placeholder="e.g. Travel Nurse"></div>
+    <div class="dsec"><div class="dslbl">Company</div><input class="d-input" id="d-company" placeholder="e.g. UCSF, Google"></div>
+    <div class="dsec"><div class="dslbl">Status</div><select class="d-select" id="d-status"></select></div>
+    <div class="dsec"><div class="dslbl">Next Step</div><input class="d-input" id="d-next" placeholder="e.g. Follow up Thursday"></div>
+    <div class="dsec"><div class="dslbl">Notes</div><textarea class="d-textarea" id="d-notes" placeholder="Add notes..."></textarea></div>
+    <button class="update-btn" onclick="saveDrawer()">Save Changes</button>
+    <button class="msg-btn" onclick="goToMsg()">Generate Message for This Prospect</button>
+  </div>
+</div>
+
+
+<!-- IMPORT MODAL -->
+<div class="overlay" id="import-overlay">
+  <div class="modal" style="width:620px">
+    <div class="modal-head" id="import-modal-head">
+      <h3 id="import-title">Import CSV</h3>
+      <button class="close-btn" onclick="closeImport()">X</button>
+    </div>
+    <div class="modal-body" style="padding:22px">
+
+      <!-- STEP 1: Upload -->
+      <div id="import-step1">
+        <div style="font-size:12px;line-height:1.7;color:var(--mid);margin-bottom:16px">
+          Upload a CSV file to bulk-import prospects. Any spreadsheet works — you will map your columns to the right fields in the next step.
+        </div>
+        <div id="import-dropzone" onclick="document.getElementById('csv-file-input').click()"
+          style="border:2px dashed var(--tan);border-radius:12px;padding:36px 20px;text-align:center;cursor:pointer;transition:border-color .15s;background:var(--cream)">
+          <div style="font-size:28px;margin-bottom:8px">📂</div>
+          <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:4px">Click to choose a CSV file</div>
+          <div style="font-size:11px;color:var(--mid)">or drag and drop it here</div>
+          <input type="file" id="csv-file-input" accept=".csv" style="display:none" onchange="handleCSVFile(event)">
+        </div>
+        <div style="margin-top:16px;padding:13px;background:var(--cream);border-radius:8px">
+          <div style="font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--mid);margin-bottom:7px">EXPECTED COLUMNS (any order, any names — you will map them)</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px">
+            <span style="padding:3px 9px;background:#fff;border:1px solid var(--tan);border-radius:20px;font-size:10px">Name</span>
+            <span style="padding:3px 9px;background:#fff;border:1px solid var(--tan);border-radius:20px;font-size:10px">Email</span>
+            <span style="padding:3px 9px;background:#fff;border:1px solid var(--tan);border-radius:20px;font-size:10px">Job Title</span>
+            <span style="padding:3px 9px;background:#fff;border:1px solid var(--tan);border-radius:20px;font-size:10px">Company</span>
+            <span style="padding:3px 9px;background:#fff;border:1px solid var(--tan);border-radius:20px;font-size:10px">Industry / Property Type</span>
+            <span style="padding:3px 9px;background:#fff;border:1px solid var(--tan);border-radius:20px;font-size:10px">Source</span>
+            <span style="padding:3px 9px;background:#fff;border:1px solid var(--tan);border-radius:20px;font-size:10px">Status</span>
+            <span style="padding:3px 9px;background:#fff;border:1px solid var(--tan);border-radius:20px;font-size:10px">Next Step</span>
+            <span style="padding:3px 9px;background:#fff;border:1px solid var(--tan);border-radius:20px;font-size:10px">Notes</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2: Map columns -->
+      <div id="import-step2" style="display:none">
+        <div style="font-size:12px;color:var(--mid);margin-bottom:14px">
+          Map your CSV columns to the right fields. <b style="color:var(--dark)">Name is required.</b> Skip any columns you do not need.
+        </div>
+        <div id="import-map-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px"></div>
+        <div style="padding:11px 13px;background:var(--cream);border-radius:8px;font-size:11px;color:var(--mid)" id="import-preview-note"></div>
+      </div>
+
+      <!-- STEP 3: Review & confirm -->
+      <div id="import-step3" style="display:none">
+        <div style="font-size:12px;color:var(--mid);margin-bottom:12px" id="import-review-note"></div>
+        <div id="import-preview-table" style="max-height:280px;overflow-y:auto;border:1px solid var(--tan);border-radius:8px;font-size:11px"></div>
+        <div style="margin-top:12px;padding:11px 13px;background:var(--amber-l);border-radius:8px;border-left:3px solid var(--amber);font-size:11px;color:var(--amber)">
+          Duplicates (same name + email already in your CRM) will be skipped automatically.
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div id="import-actions" style="display:flex;gap:8px;margin-top:18px">
+        <button class="btn-outline" id="import-back-btn" onclick="importBack()" style="display:none">Back</button>
+        <button class="save-btn" id="import-next-btn" onclick="importNext()" style="margin-top:0;flex:1">Next — Map Columns</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPA_URL = 'https://xthjrgwzaxgwcetergfn.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0aGpyZ3d6YXhnd2NldGVyZ2ZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMTc4MjYsImV4cCI6MjA4ODU5MzgyNn0.ZM4QMzs9QcD89QbLEl_bAwAjHCosOz3a5_YX7quKYSo';
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+const lsGet = (k, fb) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : fb; } catch(e) { return fb; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} };
+
+const STATUS_MAP = {
+  new:        { label: 'New',         mduLabel: 'New',       cls: 'sb-new'    },
+  ig_followed:{ label: 'IG Engaged',  mduLabel: 'Contacted', cls: 'sb-ig'     },
+  emailed:    { label: 'Emailed/DM',  mduLabel: 'Emailed/DM',cls: 'sb-em'     },
+  replied:    { label: 'Replied',     mduLabel: 'Replied',   cls: 'sb-rep'    },
+  call:       { label: 'Call Set',    mduLabel: 'Call Set',  cls: 'sb-call'   },
+  warm:       { label: 'Warm',        mduLabel: 'Warm',      cls: 'sb-warm'   },
+  funded:     { label: 'Funded',      mduLabel: 'Signed',    cls: 'sb-funded' },
+};
+const STATUS_ORDER = ['new','ig_followed','emailed','replied','call','warm','funded'];
+
+function statusLabel(s, proj) {
+  const m = STATUS_MAP[s];
+  if (!m) return s;
+  return proj === 'mdu' ? m.mduLabel : m.label;
+}
+function statusCls(s) { return (STATUS_MAP[s] || {cls:'sb-new'}).cls; }
+
+let prospects = [];
+let activeId = null;
+let selChannel = 'ig';
+let irFilter = 'all';
+let clIR = lsGet('vh_cl_ir', [
+  {id:'i1', text:'Update KPI tracker (Billy checks Mondays)',      done:false},
+  {id:'i2', text:'Post 3 educational reels on Instagram',          done:false},
+  {id:'i3', text:'Follow up with 10 existing IR prospects',        done:false},
+  {id:'i4', text:'Send outreach to 20 new IR contacts',            done:false},
+  {id:'i5', text:'Check in with Ijanea on Slack with updates',     done:false},
+]);
+let clMDU = lsGet('vh_cl_mdu', [
+  {id:'m1', text:'Post 3 posts promoting MDUs',                    done:false},
+  {id:'m2', text:'Follow up with 10 existing MDU prospects',       done:false},
+  {id:'m3', text:'Send outreach to 20 new MDU contacts',           done:false},
+  {id:'m4', text:'Check in with Charley on Slack with updates',    done:false},
+]);
+let activity = lsGet('vh_act', []);
+let curProj = 'ir';
+
+async function loadProspects() {
+  const irEl = document.getElementById('ir-rows');
+  if (irEl) irEl.innerHTML = '<div class="empty"><div class="empty-icon">⏳</div><div class="empty-title">Loading...</div></div>';
+  const { data, error } = await sb.from('prospects').select('*').order('created_at', {ascending:false});
+  if (error) {
+    console.error(error);
+    if (irEl) irEl.innerHTML = '<div class="empty"><div class="empty-icon">❌</div><div class="empty-title">DB Error: ' + error.message + '</div></div>';
+    return;
+  }
+  prospects = (data||[]).map(r => ({
+    id: r.id, project: r.project||'ir', name: r.name, email: r.email||'',
+    title: r.title||'', company: r.company||'',
+    industry: r.industry||'', source: r.source||'', wealth: r.wealth||'',
+    status: r.status||'new', next: r.next_step||'', notes: r.notes||'',
+    created: new Date(r.created_at).getTime()
+  }));
+  renderAll();
+}
+
+function toRow(p) {
+  return {
+    id: p.id, project: p.project||'ir', name: p.name, email: p.email||'',
+    title: p.title||'', company: p.company||'',
+    industry: p.industry||'', source: p.source||'', wealth: p.wealth||'',
+    status: p.status, next_step: p.next||'', notes: p.notes||'',
+    score: calcScore(p).s, created_at: p.created ? new Date(p.created).toISOString() : new Date().toISOString()
+  };
+}
+function fromRow(r) {
+  return {
+    id: r.id, project: r.project||'ir', name: r.name, email: r.email||'',
+    title: r.title||'', company: r.company||'',
+    industry: r.industry||'', source: r.source||'', wealth: r.wealth||'',
+    status: r.status||'new', next: r.next_step||'', notes: r.notes||'',
+    created: new Date(r.created_at).getTime()
+  };
+}
+
+async function dbInsert(p) {
+  const { data, error } = await sb.from('prospects').insert([toRow(p)]).select().single();
+  if (error) { toast('Error: ' + error.message); return null; }
+  return fromRow(data);
+}
+async function dbUpdate(p) {
+  const { error } = await sb.from('prospects').update(toRow(p)).eq('id', p.id);
+  if (error) { toast('Error: ' + error.message); return false; }
+  return true;
+}
+async function dbDelete(id) {
+  const { error } = await sb.from('prospects').delete().eq('id', id);
+  if (error) { toast('Error: ' + error.message); return false; }
+  return true;
+}
+
+function calcScore(p) {
+  let s = 0;
+  const factors = [];
+  if (p.project === 'mdu') {
+    const typeS = {'Apartment Complex':30,'Condo Association':25,'Student Housing':20,'Senior Living':20,'Mixed-Use':25,'Single-Family Portfolio':15,'Commercial':20,'Other':10};
+    s += typeS[p.industry] || 10;
+    const stS = {new:0,ig_followed:15,emailed:25,replied:40,call:55,warm:75,funded:99};
+    s += stS[p.status] || 0;
+    if (['Personal Network','Family','Referral'].some(x => (p.source||'').includes(x))) s += 10;
+    factors.push({k:'Property type', v: p.industry||'Unknown'}, {k:'Stage', v: statusLabel(p.status,'mdu')});
+  } else {
+    const indS = {'Tech / Software':60,'Healthcare / Nursing':55,'Legal / Attorney':60,'Entrepreneur / Business Owner':55,'Finance / Accounting':50,'Trucking / Fleet':40,'Other':30};
+    const iv = indS[p.industry] || 30; s += iv;
+    factors.push({k:'Industry match', v: iv >= 55 ? 'High' : 'Medium'});
+    const wS = {'401K':20,'HELOC':25,'Self-Directed IRA':20,'Cash Savings':15,'Whole Life Insurance':15,'Unknown':5};
+    s += wS[p.wealth] || 5;
+    factors.push({k:'Wealth source', v: p.wealth||'Unknown'});
+    if (['Current Coworker','Personal Network','Family'].includes(p.source)) { s += 15; factors.push({k:'Relationship', v:'Warm'}); }
+    else if (p.source === 'Instagram') { s += 8; factors.push({k:'Relationship', v:'IG'}); }
+    else factors.push({k:'Relationship', v:'Cold'});
+    const stS = {new:0,ig_followed:3,emailed:6,replied:10,call:14,warm:18,funded:25};
+    s += stS[p.status] || 0;
+  }
+  const sc = Math.min(s, 99);
+  let tier, desc;
+  if (sc >= 80)      { tier = 'HOT';      desc = 'High priority. Move toward a Billy intro call.'; }
+  else if (sc >= 60) { tier = 'WARM';     desc = 'Good fit. Keep nurturing consistently.'; }
+  else if (sc >= 40) { tier = 'BUILDING'; desc = 'Early stage. Educate and build relationship.'; }
+  else               { tier = 'LOW';      desc = 'Low signal. Keep in orbit for now.'; }
+  return { s: sc, tier, desc, factors };
+}
+
+function nav(view, el) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + view).classList.add('active');
+  if (el) el.classList.add('active');
+  if (view === 'dashboard')    renderDashboard();
+  if (view === 'ir')           renderPipeline('ir');
+  if (view === 'mdu')          renderPipeline('mdu');
+  if (view === 'ir-profiles')  renderIRProfiles();
+  if (view === 'mdu-profiles') renderMDUProfiles();
+}
+
+function renderAll() { renderDashboard(); renderPipeline('ir'); renderPipeline('mdu'); updateBadges(); }
+function updateBadges() {
+  document.getElementById('nb-ir').textContent  = prospects.filter(p => (p.project||'ir') === 'ir').length;
+  document.getElementById('nb-mdu').textContent = prospects.filter(p => p.project === 'mdu').length;
+}
+
+function renderDashboard() {
+  const irP  = prospects.filter(p => (p.project||'ir') === 'ir');
+  const mduP = prospects.filter(p => p.project === 'mdu');
+
+  document.getElementById('kpi-row').innerHTML =
+    kpiCard('var(--terra)', '💰 INVESTOR RELATIONS', irP.length, 'IR Prospects',
+      irP.filter(p => ['warm','call'].includes(p.status)).length + ' warm · ' + irP.filter(p => p.status === 'funded').length + ' funded') +
+    kpiCard('var(--blue)', '🏢 MDU SALES', mduP.length, 'MDU Contacts',
+      mduP.filter(p => ['warm','call'].includes(p.status)).length + ' active · ' + mduP.filter(p => p.status === 'funded').length + ' signed') +
+    kpiCard('var(--green)', '🔥 HIGH PRIORITY', prospects.filter(p => ['warm','call'].includes(p.status)).length, 'Warm / Active Now', 'Across both pipelines') +
+    kpiCard('var(--dark)', '✅ CLOSED', prospects.filter(p => p.status === 'funded').length, 'Funded + Signed', 'Total closed');
+
+  const colors = {new:'#2660A4',ig_followed:'#C13584',emailed:'#B07020',replied:'#3D7A52',call:'#3D7A52',warm:'#C4633A',funded:'#1C1C1A'};
+  const makeFunnel = (arr, proj) => {
+    const counts = {};
+    STATUS_ORDER.forEach(s => { counts[s] = arr.filter(p => p.status === s).length; });
+    const mx = Math.max(...Object.values(counts), 1);
+    return STATUS_ORDER.map(s => {
+      const c = counts[s];
+      const w = Math.max(c / mx * 100, c > 0 ? 15 : 0);
+      return '<div class="funnel-row">' +
+        '<div class="funnel-lbl">' + statusLabel(s, proj) + '</div>' +
+        '<div class="funnel-wrap"><div class="funnel-bar" style="width:' + w + '%;background:' + colors[s] + '">' + (c > 0 ? c : '') + '</div></div>' +
+        '<div class="funnel-ct">' + c + '</div></div>';
+    }).join('');
+  };
+
+  document.getElementById('funnel').innerHTML =
+    '<div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--mid);margin-bottom:7px">IR</div>' + makeFunnel(irP, 'ir') +
+    '<div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--mid);margin:13px 0 7px">MDU</div>' + makeFunnel(mduP, 'mdu');
+
+  const renderCL = (items, lsKey) => items.map(c =>
+    '<div class="check-item ' + (c.done ? 'done' : '') + '" onclick="toggleCheck(\'' + c.id + '\',\'' + lsKey + '\')">' +
+    '<div class="check-box">' + (c.done ? '✓' : '') + '</div>' +
+    '<div class="check-text">' + c.text + '</div></div>'
+  ).join('');
+  const irDone  = clIR.filter(c=>c.done).length;
+  const mduDone = clMDU.filter(c=>c.done).length;
+  document.getElementById('checklist').innerHTML =
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">' +
+    '<div>' +
+    '<div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--terra);margin-bottom:8px">💰 IR — ' + irDone + '/' + clIR.length + ' done</div>' +
+    renderCL(clIR, 'ir') + '</div>' +
+    '<div>' +
+    '<div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--blue);margin-bottom:8px">🏢 MDU — ' + mduDone + '/' + clMDU.length + ' done</div>' +
+    renderCL(clMDU, 'mdu') + '</div></div>';
+
+  const hot = prospects.map(p => Object.assign({}, p, {sc: calcScore(p)}))
+    .filter(p => p.sc.s >= 50).sort((a,b) => b.sc.s - a.sc.s).slice(0, 5);
+  document.getElementById('hot-list').innerHTML = hot.length === 0
+    ? '<div style="font-size:12px;color:var(--mid);padding:8px 0">Add prospects to see hot leads here.</div>'
+    : hot.map(p => {
+        const tag = p.project === 'mdu'
+          ? '<span style="font-size:9px;background:var(--blue-l);color:var(--blue);padding:2px 6px;border-radius:10px;font-weight:700;margin-right:5px">MDU</span>'
+          : '<span style="font-size:9px;background:var(--terra-xl);color:var(--terra);padding:2px 6px;border-radius:10px;font-weight:700;margin-right:5px">IR</span>';
+        return '<div class="act-item" style="cursor:pointer" onclick="openDrawer(\'' + p.id + '\')">' +
+          '<div class="act-dot"></div>' +
+          '<div style="flex:1;min-width:0"><div class="act-text">' + tag + '<b>' + p.name + '</b> — ' + (p.next || 'No next step') + '</div>' +
+          '<div class="act-time">' + p.industry + ' · Score ' + p.sc.s + '</div></div>' +
+          '<span class="sbadge ' + statusCls(p.status) + '" style="margin-left:8px;flex-shrink:0">' + statusLabel(p.status, p.project) + '</span></div>';
+      }).join('');
+
+  document.getElementById('activity').innerHTML = activity.length === 0
+    ? '<div style="font-size:12px;color:var(--mid);padding:8px 0">Activity will appear here as you work your pipeline.</div>'
+    : activity.slice(0, 6).map(a =>
+        '<div class="act-item"><div class="act-dot"></div><div><div class="act-text">' + a.text + '</div><div class="act-time">' + a.time + '</div></div></div>'
+      ).join('');
+
+  updateBadges();
+}
+
+function kpiCard(color, lbl, num, title, sub) {
+  return '<div class="kpi" style="border-left-color:' + color + '">' +
+    '<div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--mid);margin-bottom:5px">' + lbl + '</div>' +
+    '<div class="kpi-num" style="color:' + color + '">' + num + '</div>' +
+    '<div class="kpi-label">' + title + '</div>' +
+    '<div class="kpi-sub">' + sub + '</div></div>';
+}
+
+function toggleCheck(id, list) {
+  const arr = list === 'mdu' ? clMDU : clIR;
+  const key = list === 'mdu' ? 'vh_cl_mdu' : 'vh_cl_ir';
+  const c = arr.find(x => x.id === id);
+  if (c) { c.done = !c.done; lsSet(key, arr); renderDashboard(); }
+}
+
+function renderPipeline(proj) {
+  const rowsId  = proj === 'mdu' ? 'mdu-rows' : 'ir-rows';
+  const searchId = proj === 'mdu' ? 'mdu-search' : 'ir-search';
+  const sfId    = proj === 'mdu' ? 'mdu-sf' : 'ir-sf';
+  const rows = document.getElementById(rowsId);
+  if (!rows) return;
+  const q  = (document.getElementById(searchId)?.value || '').toLowerCase();
+  const sf = document.getElementById(sfId)?.value || '';
+  const filtered = prospects.filter(p => {
+    const matchP = (p.project||'ir') === proj;
+    const matchQ = !q || [p.name, p.industry, p.source, p.title||'', p.company||''].some(v => v.toLowerCase().includes(q));
+    const matchS = !sf || p.status === sf;
+    return matchP && matchQ && matchS;
+  });
+  if (filtered.length === 0) {
+    rows.innerHTML = '<div class="empty"><div class="empty-icon">' + (proj==='mdu'?'🏢':'💰') + '</div>' +
+      '<div class="empty-title">No ' + (proj==='mdu'?'MDU contacts':'IR prospects') + ' yet</div>Click Add above to get started.</div>';
+    return;
+  }
+  const accentColor = proj === 'mdu' ? 'var(--blue)' : 'var(--terra)';
+  rows.innerHTML = filtered.map(p => {
+    const sc = calcScore(p);
+    return '<div class="tbl-row" onclick="openDrawer(\'' + p.id + '\')">' +
+      '<div class="td"><div class="td-name">' + p.name + '</div><div class="td-sub">' + (p.title ? p.title + (p.company ? ' · ' + p.company : '') : p.source) + '</div></div>' +
+      '<div class="td">' + (p.industry||'—') + '</div>' +
+      '<div class="td" style="font-size:10px;color:var(--mid)">' + (p.source||'—') + '</div>' +
+      '<div class="td"><div style="font-size:11px;font-weight:700;color:' + accentColor + '">' + sc.s + '</div>' +
+        '<div class="score-bar-wrap"><div class="score-bar" style="width:' + sc.s + '%;background:' + accentColor + '"></div></div>' +
+        '<div style="font-size:9px;color:var(--mid);margin-top:2px">' + sc.tier + '</div></div>' +
+      '<div class="td"><span class="sbadge ' + statusCls(p.status) + '">' + statusLabel(p.status, proj) + '</span></div>' +
+      '<div class="td" style="font-size:10.5px;color:var(--mid)">' + (p.next||'—') + '</div>' +
+      '<div class="td"><button class="del-btn" onclick="event.stopPropagation();deleteP(\'' + p.id + '\')">X</button></div></div>';
+  }).join('');
+}
+
+function openAdd(proj) {
+  curProj = proj || 'ir';
+  const isMDU = curProj === 'mdu';
+  document.getElementById('modal-title').textContent = isMDU ? 'Add MDU Contact' : 'Add IR Prospect';
+  document.getElementById('a-ind-lbl').textContent   = isMDU ? 'PROPERTY TYPE' : 'INDUSTRY';
+  document.getElementById('wealth-row').style.display = isMDU ? 'none' : '';
+  const ind = document.getElementById('a-industry');
+  if (isMDU) {
+    ind.innerHTML = '<option>Apartment Complex</option><option>Condo Association</option><option>Student Housing</option><option>Senior Living</option><option>Mixed-Use</option><option>Single-Family Portfolio</option><option>Commercial</option><option>Other</option>';
+  } else {
+    ind.innerHTML = '<option>Tech / Software</option><option>Healthcare / Nursing</option><option>Legal / Attorney</option><option>Entrepreneur / Business Owner</option><option>Finance / Accounting</option><option>Trucking / Fleet</option><option>Other</option>';
+  }
+  const sel = document.getElementById('a-status');
+  sel.innerHTML = STATUS_ORDER.map(s => '<option value="' + s + '">' + statusLabel(s, curProj) + '</option>').join('');
+  document.getElementById('add-overlay').classList.add('open');
+  liveScore();
+}
+function closeAdd() { document.getElementById('add-overlay').classList.remove('open'); }
+
+function liveScore() {
+  const p = {
+    project:  curProj,
+    industry: document.getElementById('a-industry')?.value || '',
+    source:   document.getElementById('a-source')?.value || '',
+    wealth:   document.getElementById('a-wealth')?.value || 'Unknown',
+    status:   document.getElementById('a-status')?.value || 'new',
+  };
+  const sc = calcScore(p);
+  document.getElementById('sp-num').textContent   = sc.s;
+  document.getElementById('sp-label').textContent = sc.tier + ' — ' + sc.desc;
+  document.getElementById('sp-factors').innerHTML = sc.factors.map(f =>
+    '<div class="sf-row"><span class="sf-key">' + f.k + '</span><span class="sf-val">' + f.v + '</span></div>'
+  ).join('');
+}
+
+async function saveProspect() {
+  const name = document.getElementById('a-name').value.trim();
+  if (!name) { toast('Please enter a name'); return; }
+  const p = {
+    id: crypto.randomUUID(), project: curProj, name,
+    email:    document.getElementById('a-email').value.trim(),
+    title:    document.getElementById('a-title')?.value.trim()   || '',
+    company:  document.getElementById('a-company')?.value.trim() || '',
+    industry: document.getElementById('a-industry').value,
+    source:   document.getElementById('a-source').value,
+    wealth:   curProj === 'ir' ? document.getElementById('a-wealth').value : '',
+    title:    document.getElementById('a-title')?.value.trim()   || '',
+    company:  document.getElementById('a-company')?.value.trim() || '',
+    status:   document.getElementById('a-status').value,
+    next:     document.getElementById('a-next').value,
+    notes:    document.getElementById('a-notes').value,
+    created:  Date.now()
+  };
+  toast('Saving...');
+  const saved = await dbInsert(p);
+  if (!saved) return;
+  prospects.unshift(saved);
+  activity.unshift({text: name + ' added to ' + curProj.toUpperCase() + ' pipeline', time: 'Just now'});
+  lsSet('vh_act', activity);
+  closeAdd();
+  ['a-name','a-email','a-title','a-company','a-next','a-notes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  renderAll();
+  toast(name + ' added!');
+}
+
+function openDrawer(id) {
+  const p = prospects.find(x => String(x.id) === String(id));
+  if (!p) return;
+  activeId = id;
+  const proj = p.project || 'ir';
+  const sc = calcScore(p);
+  const accent = proj === 'mdu' ? 'var(--blue)' : 'var(--terra)';
+  document.getElementById('d-name').textContent = p.name;
+  document.getElementById('d-role').textContent = (proj === 'mdu' ? 'MDU Sales' : 'IR') + ' · ' + p.industry + ' · ' + p.source;
+  document.getElementById('d-score').innerHTML =
+    '<div class="score-circle" style="border-color:' + accent + ';color:' + accent + '">' + sc.s + '</div>' +
+    '<div class="score-tier">' + sc.tier + '</div><div class="score-desc">' + sc.desc + '</div>';
+  document.getElementById('d-info').innerHTML = [
+    {k:'Email',         v: p.email ? '<a href="mailto:' + p.email + '" style="color:var(--terra)">' + p.email + '</a>' : 'Not set'},
+    {k:'Wealth Source', v: p.wealth||'—'},
+    {k:'Source',        v: p.source||'—'},
+    {k:'Added',         v: new Date(p.created).toLocaleDateString()},
+  ].map(r => '<div class="irow"><span class="ik">' + r.k + '</span><span class="iv">' + r.v + '</span></div>').join('');
+  document.getElementById('d-email').value   = p.email   || '';
+  document.getElementById('d-title').value   = p.title   || '';
+  document.getElementById('d-company').value = p.company || '';
+  document.getElementById('d-status').innerHTML = STATUS_ORDER.map(s =>
+    '<option value="' + s + '"' + (p.status === s ? ' selected' : '') + '>' + statusLabel(s, proj) + '</option>'
+  ).join('');
+  document.getElementById('d-next').value  = p.next  || '';
+  document.getElementById('d-notes').value = p.notes || '';
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('doverlay').classList.add('open');
+}
+
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('doverlay').classList.remove('open');
+  activeId = null;
+}
+
+async function saveDrawer() {
+  const p = prospects.find(x => String(x.id) === String(activeId));
+  if (!p) return;
+  const oldStatus = p.status;
+  p.email   = document.getElementById('d-email').value.trim();
+  p.title   = document.getElementById('d-title')?.value.trim()   || '';
+  p.company = document.getElementById('d-company')?.value.trim() || '';
+  p.status = document.getElementById('d-status').value;
+  p.next   = document.getElementById('d-next').value;
+  p.notes  = document.getElementById('d-notes').value;
+  if (oldStatus !== p.status) {
+    activity.unshift({text: p.name + ' moved to ' + statusLabel(p.status, p.project||'ir'), time: 'Just now'});
+    lsSet('vh_act', activity);
+  }
+  toast('Saving...');
+  const ok = await dbUpdate(p);
+  if (!ok) return;
+  closeDrawer(); renderAll(); toast('Updated');
+}
+
+async function deleteP(id) {
+  if (!confirm('Remove this prospect?')) return;
+  const ok = await dbDelete(id);
+  if (!ok) return;
+  prospects = prospects.filter(p => String(p.id) !== String(id));
+  renderAll(); toast('Removed');
+}
+
+function goToMsg() {
+  const p = prospects.find(x => String(x.id) === String(activeId));
+  closeDrawer();
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-messages').classList.add('active');
+  if (p) document.getElementById('m-name').value = p.name.split(' ')[0];
+}
+
+const IR_PROFILES = [
+  {
+    name: 'Software Engineer / Developer', role: 'Senior IC at Tech Company',
+    industry: 'tech', emoji: '💻', score: 'hot',
+    signals: [
+      {c:'g', t:'High W-2 income ($150K-$400K+) — big 401K, savings, RSUs'},
+      {c:'g', t:'Your coworkers ARE this profile — zero cold outreach needed'},
+      {c:'a', t:'Analytical — lead with numbers, not just vision'},
+    ],
+    ig: 'Follow tech professionals in your network. Engage on career and income posts. DM after 2-3 engagements.',
+    email: 'Use your work contacts. Subject: Side project that might interest you. Keep it 4 sentences max.',
+    script: 'Hey [Name]! Random question — I started investing in real estate on the side. I know a lot of people in tech are looking for passive income. Would you be curious to hear how it works? Zero pressure.',
+  },
+  {
+    name: 'Travel Nurse / Contract RN', role: 'Agency-Placed, Short Contracts',
+    industry: 'healthcare', emoji: '✈️', score: 'hot',
+    signals: [
+      {c:'g', t:'$3K-$6K+/week with stipends — high savings, needs investment'},
+      {c:'g', t:'Massive Instagram community — #TravelNurse'},
+      {c:'a', t:'Skeptical of investment pitches — lead with education'},
+    ],
+    ig: 'Engage with #TravelNurse, #NursingLife. Like and comment genuinely. DM after real engagement.',
+    email: 'Find nurse finance newsletters. Subject: For nurses who want their savings working harder.',
+    script: 'Hi [Name]! I know travel nurses often have more savings than they know what to do with. I invest in co-living real estate. Would you want to hear how passive income works in 15 min?',
+  },
+  {
+    name: 'Physician / Doctor', role: 'Hospital, Private Practice, or Group',
+    industry: 'healthcare', emoji: '🩺', score: 'hot',
+    signals: [
+      {c:'g', t:'$250K-$600K+ income. Often owns home (HELOC accessible)'},
+      {c:'g', t:'Physician finance is a major Instagram niche (#WhiteCoatInvestor)'},
+      {c:'a', t:'Time-poor — must be brief and clear'},
+    ],
+    ig: 'Follow physician finance creators. Engage thoughtfully on investing posts.',
+    email: 'Subject: Quick question from a real estate investor. Max 5 sentences, one clear ask.',
+    script: 'Dr. [Name] — I will be brief. I am a real estate investor doing co-living. Returns are 8-12%, secured by property. Would a 15-min call be worth your time?',
+  },
+  {
+    name: 'Attorney / Lawyer', role: 'Law Firm, Solo Practice, or Corporate',
+    industry: 'legal', emoji: '⚖️', score: 'hot',
+    signals: [
+      {c:'g', t:'$150K-$500K+ income. Understands contracts and secured lending'},
+      {c:'g', t:'Document-forward — have the track record ready'},
+      {c:'a', t:'Due-diligence minded — be prepared to answer hard questions'},
+    ],
+    ig: 'Engage on work-life balance, income diversification posts. Many young attorneys seek passive income.',
+    email: 'Be precise. Mention the secured nature upfront. Subject: Real estate passive lending — quick question.',
+    script: '[Name] — given your legal background, I thought you would appreciate the structure. Private money partners become secured lenders. Property backs the investment. Would you be open to hearing more?',
+  },
+  {
+    name: 'Business Owner / Entrepreneur', role: 'SMB Owner, Founder, or Operator',
+    industry: 'entrepreneur', emoji: '🚀', score: 'hot',
+    signals: [
+      {c:'g', t:'Understands ROI, cash flow, and asset leverage naturally'},
+      {c:'g', t:'Business Instagram is one of the most active investing communities'},
+      {c:'a', t:'Can be skeptical — show the work and track record'},
+    ],
+    ig: 'Engage with entrepreneur communities. Post about co-living income — they will find you.',
+    email: 'Lead with ROI immediately. Subject: Double-digit returns on real estate — 2 min read.',
+    script: '[Name] — fellow investor here. I run co-living real estate (10 units, growing). I work with business owners who want capital earning outside their own industry. Worth a quick conversation?',
+  },
+  {
+    name: 'Current / Former Colleagues', role: 'Anyone You Have Worked With in Tech',
+    industry: 'tech', emoji: '🤝', score: 'hot',
+    signals: [
+      {c:'g', t:'You already have trust — this is your #1 starting point'},
+      {c:'g', t:'High tech salaries with underutilized savings'},
+      {c:'g', t:'Warmest possible lead — start here before anywhere else'},
+    ],
+    ig: 'You likely follow each other already. Drop into DMs naturally referencing something real.',
+    email: 'Work email or personal email. Keep it casual — text-message style, not a formal pitch.',
+    script: 'Hey [Name]! Random — I started investing in real estate on the side (co-living, 10 units already). Would you ever be curious to hear how the investment side works? No pitch, I promise.',
+  },
+  {
+    name: 'Finance / CPA / Analyst', role: 'Corporate Finance or Public Accounting',
+    industry: 'finance', emoji: '📉', score: 'warm',
+    signals: [
+      {c:'g', t:'Understands IRR, cap rates, and returns — can evaluate fast'},
+      {c:'g', t:'Often has IRA or 401K ready to diversify'},
+      {c:'a', t:'Will ask hard questions — be ready with the deal calculator'},
+    ],
+    ig: 'Finance Instagram is growing. CPAs often share tax tips — comment thoughtfully.',
+    email: 'Lead with numbers. Subject: 8-12% returns, secured by real property — 2 min read.',
+    script: '[Name], given your finance background, the math will speak for itself. 8-12% returns, secured by property. Would you be open to a brief call?',
+  },
+];
+
+const MDU_PROFILES = [
+  {
+    name: 'Apartment Complex Owner', role: 'Private Landlord or LLC Owner',
+    emoji: '🏢', score: 'hot',
+    signals: [
+      '50+ units = significant telecom spending',
+      'Often self-managed = direct decision maker',
+      'Motivated by bulk revenue and tenant amenity upgrades',
+    ],
+    script: 'Hi [Name] — I work with apartment owners in SoCal to add high-speed internet as a revenue-generating amenity. Most partners see $15-40/unit/month in new revenue with zero capital outlay. Worth a 15-min call?',
+  },
+  {
+    name: 'Property Management Company', role: 'PM Firm Managing 100+ Units',
+    emoji: '🗂️', score: 'hot',
+    signals: [
+      'Manages multiple properties = multiplier effect',
+      'Decides services across entire portfolio',
+      'Always looking for amenities that reduce churn',
+    ],
+    script: '[Name] — we partner with PM companies to deploy bulk internet across portfolios. One agreement, multiple properties, ongoing revenue share. Worth a quick call?',
+  },
+  {
+    name: 'Condo / HOA Board Member', role: 'Decision Maker for Association',
+    emoji: '🏛️', score: 'warm',
+    signals: [
+      'Controls service contracts for entire building',
+      'Cost-sensitive but amenity-motivated',
+      'Slower decision cycle but sticky once signed',
+    ],
+    script: 'Hi [Name] — I help HOAs upgrade internet infrastructure at no cost to the association while adding a shared amenity residents want. Can I send a quick overview?',
+  },
+  {
+    name: 'Student Housing Operator', role: 'Near University Campuses',
+    emoji: '🎓', score: 'hot',
+    signals: [
+      'Students rank internet as their #1 amenity',
+      'Speed = major leasing differentiator',
+      'Often managed by regional or national operators',
+    ],
+    script: '[Name] — students rank internet as their #1 amenity. We deploy guaranteed-speed bulk internet that becomes a leasing tool. What are you doing near [campus]?',
+  },
+  {
+    name: 'Senior Living / Assisted Living', role: 'Operator or Director of Facilities',
+    emoji: '🌿', score: 'warm',
+    signals: [
+      'Growing demand for connectivity from residents and families',
+      'Operators under pressure to modernize',
+      'Strong referral networks between operators',
+    ],
+    script: 'Hi [Name] — we help senior living communities upgrade connectivity so residents can video call family. No capital required on your end. Worth 15 minutes?',
+  },
+  {
+    name: 'Real Estate Developer', role: 'Active Developer of New MDU Projects',
+    emoji: '🏗️', score: 'hot',
+    signals: [
+      'Can build infrastructure in from the ground up',
+      'One relationship = multiple future properties',
+      'Developers know other developers',
+    ],
+    script: '[Name] — if you are building MDU right now, the best time to wire for bulk internet is pre-construction. We partner with developers at no cost with long-term revenue share. Worth a conversation?',
+  },
+];
+
+function renderIRProfiles() {
+  const cats = ['all','tech','healthcare','legal','entrepreneur','finance'];
+  document.getElementById('ir-filters').innerHTML = cats.map(c =>
+    '<div class="chip ' + (irFilter === c ? 'active' : '') + '" onclick="setIRFilter(\'' + c + '\')">' +
+    (c === 'all' ? 'All Profiles' : c.charAt(0).toUpperCase() + c.slice(1)) + '</div>'
+  ).join('');
+  const filtered = IR_PROFILES.filter(p => irFilter === 'all' || p.industry === irFilter);
+  document.getElementById('ir-profiles-grid').innerHTML = filtered.map(p =>
+    '<div class="pcard">' +
+    '<div class="pc-top"><div class="pc-emoji">' + p.emoji + '</div>' +
+    '<div style="flex:1;min-width:0"><div class="pc-name">' + p.name + '</div><div class="pc-role">' + p.role + '</div></div>' +
+    '<span class="' + (p.score === 'hot' ? 'sp-hot' : 'sp-warm') + '">' + (p.score === 'hot' ? 'HOT' : 'WARM') + '</span></div>' +
+    '<div class="pc-sigs">' + p.signals.map(s =>
+      '<div class="sig"><div class="sig-dot" style="background:' + (s.c === 'g' ? 'var(--green)' : 'var(--amber)') + '"></div><span>' + s.t + '</span></div>'
+    ).join('') + '</div>' +
+    '<div class="pc-body">' +
+    '<div class="pc-lbl">INSTAGRAM APPROACH</div><div class="pc-txt">' + p.ig + '</div>' +
+    '<div class="pc-lbl">EMAIL APPROACH</div><div class="pc-txt">' + p.email + '</div>' +
+    '<div class="pc-script">' + p.script + '</div></div>' +
+    '<div class="pc-actions">' +
+    '<button class="btn-sm btn-sm-o" onclick="prefillMsg(\'' + p.industry + '\')">Generate Message</button>' +
+    '<button class="btn-sm btn-sm-s" onclick="openAdd(\'ir\')">+ Add to IR</button></div></div>'
+  ).join('');
+}
+
+function setIRFilter(f) { irFilter = f; renderIRProfiles(); }
+function prefillMsg(industry) {
+  document.getElementById('m-industry').value = industry;
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-messages').classList.add('active');
+}
+
+function renderMDUProfiles() {
+  document.getElementById('mdu-profiles-grid').innerHTML = MDU_PROFILES.map(p =>
+    '<div class="pcard">' +
+    '<div class="pc-top"><div class="pc-emoji">' + p.emoji + '</div>' +
+    '<div style="flex:1;min-width:0"><div class="pc-name">' + p.name + '</div><div class="pc-role">' + p.role + '</div></div>' +
+    '<span class="' + (p.score === 'hot' ? 'sp-hot' : 'sp-warm') + '">' + (p.score === 'hot' ? 'HOT' : 'WARM') + '</span></div>' +
+    '<div class="pc-sigs">' + p.signals.map(s =>
+      '<div class="sig"><div class="sig-dot" style="background:var(--green)"></div><span>' + s + '</span></div>'
+    ).join('') + '</div>' +
+    '<div class="pc-body"><div class="pc-script">' + p.script + '</div></div>' +
+    '<div class="pc-actions"><button class="btn-sm btn-sm-b" onclick="openAdd(\'mdu\')">+ Add to MDU</button></div></div>'
+  ).join('');
+}
+
+function selCh(ch) {
+  selChannel = ch;
+  ['ig','em','both'].forEach(c => document.getElementById('ch-' + c).classList.toggle('sel', c === ch));
+}
+
+function generateMsgs() {
+  const name   = document.getElementById('m-name').value.trim() || '[Name]';
+  const ind    = document.getElementById('m-industry').value;
+  const rel    = document.getElementById('m-rel').value;
+  const goal   = document.getElementById('m-goal').value;
+  const detail = document.getElementById('m-detail').value.trim();
+
+  const indMap = {tech:'in tech', nurse:'in nursing', doctor:'in medicine', lawyer:'in law', entrepreneur:'running your own business', finance:'in finance', general:'in your field'};
+  const indStr = indMap[ind] || 'in your field';
+
+  const openers = {
+    coworker:   'Hey ' + name + '! Random question from your coworker who apparently became a real estate investor.',
+    former:     'Hey ' + name + '! So good to reconnect — I wanted to share something I have been working on outside my 9-5.',
+    igfollower: 'Hey ' + name + '! Love your content. I had to reach out because I think you would genuinely find this interesting.',
+    igstranger: 'Hey ' + name + '! Came across your profile — I work in real estate investing and think it would resonate with someone ' + indStr + '.',
+    friend:     'Hey ' + name + '! Random question — you know I am always up to something.',
+    family:     'Hey ' + name + '! I have been working on something exciting and you are one of the first people I thought of.',
+    stranger:   'Hi ' + name + ' — I will keep this brief.',
+  };
+  const opener = openers[rel] || ('Hey ' + name + '!');
+  const detailLine = detail ? ' ' + detail.charAt(0).toUpperCase() + detail.slice(1) + ' — that made me think of this.' : '';
+
+  const msgs = {
+    seed: {
+      ig: {label:'IG DM — SEED', body: opener + detailLine + '\n\nI started investing in real estate on the side — specifically co-living properties. Already part of a team with 10 units. I know a lot of people ' + indStr + ' are looking for passive income streams outside of stocks.\n\nWould you ever be curious to hear how it works? Zero pressure — just thought of you.'},
+      em: {label:'EMAIL — SEED', subj:'Quick question — passive real estate investing', body: 'Hi ' + name + ',\n\n' + (detail ? detail.charAt(0).toUpperCase() + detail.slice(1) + ' — that made me think of you.\n\n' : '') + 'I invest in co-living real estate on the side (already 10 units with my partner). I occasionally connect with professionals ' + indStr + ' looking for passive income outside their main career.\n\nSimple concept — you become the lender, earn 8-12% returns, and the property secures the investment. No property management involved.\n\nWould a 15-minute call make sense?\n\nBest,\nVictoria'},
+    },
+    followup: {
+      ig: {label:'IG DM — FOLLOW UP', body: 'Hey ' + name + '! Just bringing this back to the top — did you get a chance to think about what I mentioned?\n\nNo rush at all. Would love to hop on a quick 15-min call if you are curious.'},
+      em: {label:'EMAIL — FOLLOW UP', subj:'Following up — real estate passive income', body: 'Hi ' + name + ',\n\nJust circling back on my last note. I know things get busy — totally get it!\n\nI am still working on co-living deals and thought you might want to hear more. Even a quick 15-min call would be worth it just to learn the concept.\n\nStill interested?\n\nVictoria'},
+    },
+    bank: {
+      ig: {label:'IG DM — BANK ANALOGY', body: name + ' — best way I can explain it:\n\nYou know how when you get a mortgage, the bank loans you money and charges interest? If you stop paying, they foreclose?\n\nIn this model, YOU are the bank. You lend to us, we pay you interest every month, and the property is the collateral.\n\nWant to hop on a quick call to go deeper?'},
+      em: {label:'EMAIL — BANK ANALOGY', subj:'You would be the bank — here is how it works', body: 'Hi ' + name + ',\n\nSimplest way to explain what I do:\n\nWhen you got your mortgage, the bank loaned you money, charged interest, and held the property as collateral. If you stopped paying, they would foreclose.\n\nIn private real estate lending, the roles flip. You become the bank. You loan capital to investors like me, we pay you interest (8-12% annually), and the property secures your investment.\n\nNo tenants. No property management. Just monthly interest payments.\n\nWould a 15-minute call be worth your time?\n\nVictoria'},
+    },
+    event: {
+      ig: {label:'IG DM — ZOOM INVITE', body: 'Hey ' + name + '! I am hosting a free educational Zoom for people ' + indStr + ' who are curious about passive real estate investing.\n\nNo pitch. Just education — how co-living works, what returns look like, how to become a money partner without managing anything.\n\nDate: [Date] at [Time] PT\nLink: [Zoom link]\n\nWould love to have you — are you in?'},
+      em: {label:'EMAIL — ZOOM INVITE', subj:'Free Zoom: Passive real estate investing for people ' + indStr, body: 'Hi ' + name + ',\n\nI am hosting a free 45-minute Zoom on passive real estate investing — specifically co-living, which generates 40-60% more cash flow than traditional rentals in SoCal.\n\nDesigned for professionals ' + indStr + ' curious about passive income without managing properties.\n\nDate: [Date]\nTime: [Time] PT\nRegister: [Link]\n\nNo pitch — just real education.\n\nVictoria'},
+    },
+    nurture: {
+      ig: {label:'IG DM — NURTURE', body: 'Hey ' + name + '! Just wanted to check in — ' + (detail || 'hope everything is going well') + '!\n\nI have been heads-down on a new co-living deal. If you are ever curious about what passive real estate investing looks like, I would love to walk you through it sometime. No timeline.'},
+      em: {label:'EMAIL — NURTURE', subj:'Checking in + a quick update', body: 'Hi ' + name + ',\n\n' + (detail ? 'Thinking of you — ' + detail + '.\n\n' : 'Hope you are doing well!\n\n') + 'Just wanted to keep you in the loop — we just closed funding on a new co-living property. 11% returns for our money partner in the first quarter.\n\nNo ask here — just sharing in case you ever want to explore further.\n\nVictoria'},
+    },
+  };
+
+  const msgSet = msgs[goal] || msgs.seed;
+  const toShow = [];
+  if (selChannel === 'ig'   || selChannel === 'both') toShow.push({...msgSet.ig, isIg: true});
+  if (selChannel === 'em'   || selChannel === 'both') toShow.push({...msgSet.em, isIg: false});
+
+  const out = document.getElementById('msgs-out');
+  out.style.display = 'grid';
+  out.innerHTML = toShow.map((m, i) =>
+    '<div class="msg-card">' +
+    '<div class="msg-head"><span class="msg-head-lbl">' + m.label + '</span></div>' +
+    (m.subj ? '<div style="padding:9px 14px;background:var(--cream);font-size:11px;color:var(--mid)">Subject: <b style="color:var(--dark)">' + m.subj + '</b></div>' : '') +
+    '<div class="msg-body" id="mbody' + i + '">' + m.body.replace(/\n/g, '<br>') + '</div>' +
+    '<div class="copy-row"><button class="copy-btn" id="cpb' + i + '" onclick="copyMsg(' + i + ')">Copy</button></div></div>'
+  ).join('');
+  out.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function copyMsg(i) {
+  const el = document.getElementById('mbody' + i);
+  const text = el ? el.innerText : '';
+  navigator.clipboard.writeText(text).then(() => {
+    const b = document.getElementById('cpb' + i);
+    b.textContent = 'Copied!'; b.classList.add('copied');
+    setTimeout(() => { b.textContent = 'Copy'; b.classList.remove('copied'); }, 2000);
+  });
+}
+
+function exportCSV(proj) {
+  const data = proj ? prospects.filter(p => (p.project||'ir') === proj) : prospects;
+  const headers = ['Name','Email','Title','Company','Project','Industry','Source','Wealth','Status','Score','Next Step','Notes','Date Added'];
+  const rows = data.map(p => {
+    const sc = calcScore(p);
+    return [p.name, p.email||'', p.title||'', p.company||'', p.project||'ir', p.industry||'', p.source||'', p.wealth||'',
+      statusLabel(p.status, p.project||'ir'), sc.s, p.next||'', p.notes||'',
+      new Date(p.created).toLocaleDateString()
+    ].map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',');
+  });
+  const csv = [headers.join(','), ...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'vegahaus_' + (proj||'all') + '_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  toast('Exported');
+}
+
+function confirmReset() {
+  if (!confirm('Delete all data and reset? This cannot be undone.')) return;
+  ['vh_cl_ir','vh_cl_mdu','vh_act'].forEach(k => localStorage.removeItem(k));
+  location.reload();
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+
+// ── CSV Import ────────────────────────────────────────────────────────────────
+let importProj = 'ir';
+let csvHeaders = [];
+let csvRows    = [];
+let importStep = 1;
+
+const CRM_FIELDS = [
+  {key:'name',     label:'Full Name *'},
+  {key:'email',    label:'Email'},
+  {key:'title',    label:'Job Title'},
+  {key:'company',  label:'Company / Employer'},
+  {key:'industry', label:'Industry / Property Type'},
+  {key:'source',   label:'Source'},
+  {key:'status',   label:'Status'},
+  {key:'next',     label:'Next Step'},
+  {key:'notes',    label:'Notes'},
+  {key:'skip',     label:'— Skip this column —'},
+];
+
+function openImport(proj) {
+  importProj = proj || 'ir';
+  importStep = 1;
+  csvHeaders = []; csvRows = [];
+  document.getElementById('import-title').textContent = proj === 'mdu' ? 'Import MDU Contacts' : 'Import IR Prospects';
+  document.getElementById('import-modal-head').style.background = proj === 'mdu' ? 'var(--blue)' : 'var(--terra)';
+  document.getElementById('csv-file-input').value = '';
+  showImportStep(1);
+  document.getElementById('import-overlay').classList.add('open');
+}
+function closeImport() {
+  document.getElementById('import-overlay').classList.remove('open');
+}
+function showImportStep(n) {
+  importStep = n;
+  document.getElementById('import-step1').style.display = n === 1 ? '' : 'none';
+  document.getElementById('import-step2').style.display = n === 2 ? '' : 'none';
+  document.getElementById('import-step3').style.display = n === 3 ? '' : 'none';
+  document.getElementById('import-back-btn').style.display = n > 1 ? '' : 'none';
+  const nextBtn = document.getElementById('import-next-btn');
+  if (n === 1) { nextBtn.textContent = 'Next — Map Columns'; nextBtn.disabled = true; nextBtn.style.opacity = '.5'; }
+  if (n === 2) { nextBtn.textContent = 'Next — Preview Import'; nextBtn.disabled = false; nextBtn.style.opacity = '1'; }
+  if (n === 3) { nextBtn.textContent = 'Import ' + csvRows.length + ' Contacts'; nextBtn.disabled = false; nextBtn.style.opacity = '1'; }
+}
+function importBack() {
+  if (importStep > 1) showImportStep(importStep - 1);
+}
+
+// Drag and drop
+const dz = document.getElementById('import-dropzone');
+if (dz) {
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dropover'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('dropover'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('dropover');
+    const file = e.dataTransfer.files[0];
+    if (file) parseCSVFile(file);
+  });
+}
+
+function handleCSVFile(e) {
+  const file = e.target.files[0];
+  if (file) parseCSVFile(file);
+}
+
+function parseCSVFile(file) {
+  if (!file.name.endsWith('.csv')) { toast('Please upload a .csv file'); return; }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const text = e.target.result;
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    if (lines.length < 2) { toast('CSV needs at least a header row and one data row'); return; }
+
+    // Parse CSV properly (handles quoted fields)
+    csvHeaders = parseCSVLine(lines[0]);
+    csvRows = lines.slice(1).map(l => parseCSVLine(l)).filter(r => r.some(c => c.trim()));
+
+    // Update dropzone to show file loaded
+    document.getElementById('import-dropzone').innerHTML =
+      '<div style="font-size:22px;margin-bottom:6px">✅</div>' +
+      '<div style="font-size:13px;font-weight:700;color:var(--green)">' + file.name + '</div>' +
+      '<div style="font-size:11px;color:var(--mid);margin-top:3px">' + csvRows.length + ' rows detected</div>';
+
+    const nextBtn = document.getElementById('import-next-btn');
+    nextBtn.disabled = false; nextBtn.style.opacity = '1';
+    buildMapGrid();
+  };
+  reader.readAsText(file);
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let cur = ''; let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { inQ = !inQ; }
+    else if (c === ',' && !inQ) { result.push(cur.trim()); cur = ''; }
+    else { cur += c; }
+  }
+  result.push(cur.trim());
+  return result;
+}
+
+function buildMapGrid() {
+  // Auto-detect column mappings
+  const autoMap = {};
+  const nameHints    = ['name','full name','contact','first name','person'];
+  const titleHints   = ['title','job title','role','position','occupation','designation'];
+  const companyHints = ['company','employer','organization','org','workplace','firm','business','institution'];
+  const emailHints   = ['email','e-mail','email address'];
+  const industryHints= ['industry','property type','type','sector','occupation','job'];
+  const sourceHints  = ['source','where','how','channel','origin','found'];
+  const statusHints  = ['status','stage','pipeline'];
+  const nextHints    = ['next','next step','action','follow up','followup'];
+  const notesHints   = ['notes','note','comments','comment','details'];
+
+  csvHeaders.forEach((h, i) => {
+    const hl = h.toLowerCase().trim();
+    if (nameHints.some(x => hl.includes(x)))     autoMap[i] = 'name';
+    else if (emailHints.some(x => hl.includes(x)))    autoMap[i] = 'email';
+    else if (titleHints.some(x => hl.includes(x)))    autoMap[i] = 'title';
+    else if (companyHints.some(x => hl.includes(x)))  autoMap[i] = 'company';
+    else if (industryHints.some(x => hl.includes(x))) autoMap[i] = 'industry';
+    else if (sourceHints.some(x => hl.includes(x)))   autoMap[i] = 'source';
+    else if (statusHints.some(x => hl.includes(x)))   autoMap[i] = 'status';
+    else if (nextHints.some(x => hl.includes(x)))     autoMap[i] = 'next';
+    else if (notesHints.some(x => hl.includes(x)))    autoMap[i] = 'notes';
+    else autoMap[i] = 'skip';
+  });
+
+  const grid = document.getElementById('import-map-grid');
+  grid.innerHTML = csvHeaders.map((h, i) => {
+    const sample = csvRows.slice(0,3).map(r => r[i] || '').filter(Boolean).join(', ');
+    const opts = CRM_FIELDS.map(f =>
+      '<option value="' + f.key + '"' + (autoMap[i] === f.key ? ' selected' : '') + '>' + f.label + '</option>'
+    ).join('');
+    return '<div style="background:var(--cream);border-radius:8px;padding:10px">' +
+      '<div style="font-size:10px;font-weight:700;color:var(--dark);margin-bottom:4px">' + h + '</div>' +
+      '<div style="font-size:9px;color:var(--mid);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">e.g. ' + sample + '</div>' +
+      '<select class="sf" style="width:100%;font-size:11px" id="map-' + i + '">' + opts + '</select></div>';
+  }).join('');
+
+  document.getElementById('import-preview-note').textContent =
+    csvHeaders.length + ' columns detected from ' + csvRows.length + ' rows. Adjust any auto-detected mappings below.';
+  showImportStep(2);
+}
+
+function buildPreview() {
+  // Build mapping from column index to field key
+  const mapping = {};
+  csvHeaders.forEach((h, i) => {
+    const sel = document.getElementById('map-' + i);
+    if (sel && sel.value !== 'skip') mapping[i] = sel.value;
+  });
+
+  // Check name column exists
+  const hasName = Object.values(mapping).includes('name');
+  if (!hasName) { toast('Please map at least one column to Full Name'); return false; }
+
+  // Build preview rows
+  const parsed = csvRows.map(row => {
+    const p = {project: importProj, status: 'new'};
+    Object.entries(mapping).forEach(([i, field]) => { p[field] = (row[i] || '').trim(); });
+    return p;
+  }).filter(p => p.name);
+
+  // Dedupe check
+  const existingKeys = new Set(prospects.map(p => (p.name + '|' + (p.email||'')).toLowerCase()));
+  const newOnes  = parsed.filter(p => !existingKeys.has((p.name + '|' + (p.email||'')).toLowerCase()));
+  const skipCount = parsed.length - newOnes.length;
+
+  document.getElementById('import-review-note').innerHTML =
+    '<b style="color:var(--dark)">' + newOnes.length + ' contacts</b> ready to import' +
+    (skipCount > 0 ? ' · <span style="color:var(--amber)">' + skipCount + ' duplicates will be skipped</span>' : ' · no duplicates found');
+
+  const tbl = document.getElementById('import-preview-table');
+  if (newOnes.length === 0) {
+    tbl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--mid)">All rows are duplicates of existing contacts.</div>';
+  } else {
+    tbl.innerHTML =
+      '<div style="display:grid;grid-template-columns:2fr 1.5fr 1.5fr 1fr;padding:8px 12px;background:var(--dark);font-size:9px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.4)">' +
+      '<div>NAME</div><div>INDUSTRY</div><div>SOURCE</div><div>STATUS</div></div>' +
+      newOnes.slice(0, 50).map(p =>
+        '<div style="display:grid;grid-template-columns:2fr 1.5fr 1.5fr 1fr;padding:8px 12px;border-bottom:1px solid var(--tan);font-size:11px;align-items:center">' +
+        '<div style="font-weight:600">' + p.name + (p.email ? '<div style="font-size:9px;color:var(--mid);font-weight:400">' + p.email + '</div>' : '') + '</div>' +
+        '<div style="color:var(--mid)">' + (p.industry||'—') + '</div>' +
+        '<div style="color:var(--mid)">' + (p.source||'—') + '</div>' +
+        '<div><span class="sbadge sb-new">New</span></div></div>'
+      ).join('') +
+      (newOnes.length > 50 ? '<div style="padding:9px 12px;font-size:11px;color:var(--mid)">... and ' + (newOnes.length - 50) + ' more</div>' : '');
+  }
+
+  document.getElementById('import-next-btn').textContent = 'Import ' + newOnes.length + ' Contacts';
+  document.getElementById('import-next-btn').disabled = newOnes.length === 0;
+  document.getElementById('import-next-btn').style.opacity = newOnes.length === 0 ? '.5' : '1';
+
+  // Store for actual import
+  window._importReady = newOnes;
+  showImportStep(3);
+  return true;
+}
+
+function importNext() {
+  if (importStep === 1) { toast('Please upload a CSV file first'); return; }
+  if (importStep === 2) { buildPreview(); return; }
+  if (importStep === 3) { doImport(); }
+}
+
+async function doImport() {
+  const rows = window._importReady || [];
+  if (!rows.length) return;
+  const btn = document.getElementById('import-next-btn');
+  btn.textContent = 'Importing...'; btn.disabled = true;
+
+  let success = 0; let failed = 0;
+  for (const p of rows) {
+    const rec = {
+      id: crypto.randomUUID(), project: importProj,
+      name: p.name, email: p.email||'', title: p.title||'', company: p.company||'',
+      industry: p.industry||'', source: p.source||'', wealth: '',
+      status: p.status||'new', next: p.next||'', notes: p.notes||'', created: Date.now()
+    };
+    const saved = await dbInsert(rec);
+    if (saved) { prospects.unshift(saved); success++; }
+    else failed++;
+  }
+
+  activity.unshift({text: success + ' contacts imported to ' + importProj.toUpperCase(), time: 'Just now'});
+  lsSet('vh_act', activity);
+  closeImport();
+  renderAll();
+  toast(success + ' contacts imported!' + (failed > 0 ? ' (' + failed + ' failed)' : ''));
+}
+
+renderIRProfiles();
+renderMDUProfiles();
+renderDashboard();
+loadProspects();
+</script>
+</body>
+</html>
